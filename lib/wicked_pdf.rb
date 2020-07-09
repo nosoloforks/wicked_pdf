@@ -57,6 +57,7 @@ class WickedPdf
     options.merge!(WickedPdf.config) { |_key, option, _config| option }
     generated_pdf_file = WickedPdfTempfile.new('wicked_pdf_generated_file.pdf', options[:temp_path])
     command = [@exe_path]
+    command.unshift(options[:xvfb_options]) if options[:use_xvfb] && options[:xvfb_options]
     command.unshift(find_xvfb_run_binary_path) if options[:use_xvfb]
     command += parse_options(options)
     command << url
@@ -67,7 +68,7 @@ class WickedPdf
     if track_progress?(options)
       invoke_with_progress(command, options)
     else
-      err = Open3.popen3(*command) do |_stdin, _stdout, stderr|
+      err = Open3.popen3(command.join(' ')) do |_stdin, _stdout, stderr|
         stderr.read
       end
     end
